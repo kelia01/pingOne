@@ -8,7 +8,6 @@ import { Server } from 'socket.io';
 import connectDB from './config/database.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
-import { protect } from './middleware/auth.js';
 import User from './models/User.js';
 import Message from './models/Message.js';
 

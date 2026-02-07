@@ -1,11 +1,12 @@
-
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import api from '../utils/api.js';
+// frontend/src/context/AuthContext.tsx
+import React, { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
+import type { User, AuthContextType, RegisterData, LoginCredentials, AuthResponse } from '../types';
 
-const AuthContext = createContext();
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider');
@@ -13,9 +14,13 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -27,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const register = async (userData) => {
+  const register = async (userData: RegisterData): Promise<AuthResponse> => {
     try {
       const response = await api.post('/auth/register', userData);
       const { token, ...userInfo } = response.data;
@@ -37,14 +42,15 @@ export const AuthProvider = ({ children }) => {
       setUser(userInfo);
       
       toast.success('Account created successfully!');
-      return { success: true };
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed');
-      return { success: false, error: error.message };
+      return { success: true, user: { ...userInfo, token } };
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Registration failed';
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
-  const login = async (credentials) => {
+  const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
       const response = await api.post('/auth/login', credentials);
       const { token, ...userInfo } = response.data;
@@ -54,14 +60,15 @@ export const AuthProvider = ({ children }) => {
       setUser(userInfo);
       
       toast.success('Welcome back!');
-      return { success: true };
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
-      return { success: false, error: error.message };
+      return { success: true, user: { ...userInfo, token } };
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Login failed';
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     try {
       await api.post('/auth/logout');
     } catch (error) {
@@ -74,23 +81,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const updateUserStatus = async (status) => {
+  const updateUserStatus = async (status: User['status']): Promise<void> => {
     try {
       await api.put('/users/status', { status });
-      setUser(prev => ({ ...prev, status }));
+      setUser(prev => prev ? { ...prev, status } : null);
     } catch (error) {
       console.error('Status update error:', error);
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     loading,
     register,
     login,
     logout,
     updateUserStatus,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
   };
 
   return (

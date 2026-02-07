@@ -1,17 +1,20 @@
-
-import React, { useState } from 'react';
+// frontend/src/components/auth/Login.tsx
+import React, { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext.jsx';
-import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import type { LoginCredentials } from '../../types';
 
-const Login = () => {
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
-  const [loading, setLoading] = useState(false);
+const Login: React.FC = () => {
+  const [credentials, setCredentials] = useState<LoginCredentials>({ 
+    email: '', 
+    password: '' 
+  });
+  const [loading, setLoading] = useState<boolean>(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     
@@ -23,7 +26,7 @@ const Login = () => {
     setLoading(false);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     setCredentials({
       ...credentials,
       [e.target.name]: e.target.value
@@ -31,7 +34,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8 bg-white rounded-2xl shadow-xl p-8">
         <div className="text-center">
           <div className="flex justify-center">

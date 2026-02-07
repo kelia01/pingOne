@@ -1,11 +1,12 @@
+// frontend/src/context/SocketContext.tsx
+import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { io, Socket } from 'socket.io-client';
+import { useAuth } from './AuthContext';
+import type { SocketContextType } from '../types';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
-import { useAuth } from './AuthContext.jsx';
+const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
-const SocketContext = createContext();
-
-export const useSocket = () => {
+export const useSocket = (): SocketContextType => {
   const context = useContext(SocketContext);
   if (!context) {
     throw new Error('useSocket must be used within SocketProvider');
@@ -13,10 +14,14 @@ export const useSocket = () => {
   return context;
 };
 
-export const SocketProvider = ({ children }) => {
+interface SocketProviderProps {
+  children: ReactNode;
+}
+
+export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
-  const [socket, setSocket] = useState(null);
-  const [onlineUsers, setOnlineUsers] = useState(new Set());
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -33,7 +38,7 @@ export const SocketProvider = ({ children }) => {
       setSocket(newSocket);
 
       // Handle user status changes
-      newSocket.on('user_status_change', ({ userId, status }) => {
+      newSocket.on('user_status_change', ({ userId, status }: { userId: string; status: string }) => {
         setOnlineUsers(prev => {
           const updated = new Set(prev);
           if (status === 'online') {
@@ -52,11 +57,11 @@ export const SocketProvider = ({ children }) => {
     }
   }, [isAuthenticated, user]);
 
-  const isUserOnline = (userId) => {
+  const isUserOnline = (userId: string): boolean => {
     return onlineUsers.has(userId);
   };
 
-  const value = {
+  const value: SocketContextType = {
     socket,
     isUserOnline,
     setOnlineUsers

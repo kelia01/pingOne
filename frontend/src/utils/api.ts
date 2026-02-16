@@ -1,7 +1,7 @@
 // frontend/src/utils/api.ts
 import axios, { AxiosError, type AxiosInstance, type AxiosResponse } from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:3000/api';
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
